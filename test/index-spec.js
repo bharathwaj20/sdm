@@ -1,4 +1,4 @@
-var assert = require('assert');
+/**var assert = require('assert');
 var calculator = require('../index');
 describe('MERN APPLICATION', function() {
     describe('UNIT TEST', function() {
@@ -7,4 +7,13 @@ describe('MERN APPLICATION', function() {
             assert.equal(result, 2);
         });
     });
+});*/
+
+const expect = require('chai').expect
+const server = require('../index');
+
+describe('test', () => {
+  it('should return a string', () => {
+    expect('ci with travis').to.equal('ci with travis');
+  });
 });
