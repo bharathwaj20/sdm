@@ -1,28 +1,15 @@
 {
-  "name": "sdm",
+  "name": "fullstack_app",
   "version": "1.0.0",
-  "description": "mern app",
+  "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "start": "concurrently \"cd backend && node server.js\" \"cd client && npm start\""
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/bharathwaj20/sdm.git"
-  },
+  "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/bharathwaj20/sdm/issues"
-  },
-  "homepage": "https://github.com/bharathwaj20/sdm#readme",
   "dependencies": {
-    "express": "^4.17.1"
-  },
-  "devDependencies": {
-    "chai": "^4.2.0",
-    "graphql": "^14.4.2",
-    "mocha": "^6.2.0",
-    "supertest": "^4.0.2"
+    "concurrently": "^4.0.1"
   }
 }

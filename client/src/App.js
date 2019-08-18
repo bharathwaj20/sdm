@@ -1,126 +1,166 @@
+// /client/App.js
 import React, { Component } from 'react';
-import gql from "graphql-tag";
-import { graphql } from 'react-apollo';
-//import { compose } from 'react-apollo';
-import Paper from '@material-ui/core/Paper';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-//import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemText from '@material-ui/core/ListItemText';
-import Checkbox from '@material-ui/core/Checkbox';
-import IconButton from '@material-ui/core/IconButton';
-import CloseIcon from '@material-ui/icons/Close';
+import axios from 'axios';
 
+class App extends Component {
+  // initialize our state
+  state = {
+    data: [],
+    id: 0,
+    message: null,
+    intervalIsSet: false,
+    idToDelete: null,
+    idToUpdate: null,
+    objectToUpdate: null,
+  };
 
-const TodosQuery= gql`
-{
-  todos{
-    id
-    text
-    complete
-  }
-}
-`;
-
-const UpdateMutation = gql`
-  mutation($id:ID!,$complete:Boolean!){
-    updateTodo(id:$id,complete:$complete)
-}
-`;
-
-
-//function App() {
-class App extends Component{
-
-     updateTodo = async todo => {
-        //update todo
-        await this.props.updateTodo({
-          varaiables: {
-            id: todo.id,
-            complete:!todo.complete
-          },
-          update:store => {
-            const data = store.readQuery({query:TodosQuery});
-            data.todos = data.todos.map(
-              x=>
-              x.id === todo.id 
-              ? {
-              ...todo,
-              complete:!todo.complete,
-            }
-            :x
-            );
-            store.writeQuery({query:TodosQuery,data});
-          }
-        });
-    };
-      removeTodo = todo => {
-        //remove todo
-      } 
-
-  render(){
-    const{
-      data: {loading,todos}
-    }= this.props;
-    if(loading){
-      return null;
+  // when component mounts, first thing it does is fetch all existing data in our db
+  // then we incorporate a polling logic so that we can easily see if our db has
+  // changed and implement those changes into our UI
+  componentDidMount() {
+    this.getDataFromDb();
+    if (!this.state.intervalIsSet) {
+      let interval = setInterval(this.getDataFromDb, 1000);
+      this.setState({ intervalIsSet: interval });
     }
-    return (
-      <div style={{display:"flex"}}>
-        <div style={{margin:"auto",width:400}}>
-          <Paper elevation={1}>
-           
-            <List>
-              {todos.map(todo => (
-               <ListItem
-                  key = {todo.id}
-                  role = {undefined}
-                  dense
-                  button
-                  onClick={() => this.updateTodo(todo)}
-                  
-                >
-            <Checkbox
-              checked={todo.complete}
-              tabIndex={-1}
-              disableRipple
-            />
-            <ListItemText primary={todo.text} />
-              <ListItemSecondaryAction>
-                <IconButton onClick={() => this.removeTodo(todo) }>
-                  <CloseIcon />
-                </IconButton>
-              </ListItemSecondaryAction>
-            </ListItem>
-          ))}
-        </List>
+  }
 
-          </Paper>        
+  // never let a process live forever
+  // always kill a process everytime we are done using it
+  componentWillUnmount() {
+    if (this.state.intervalIsSet) {
+      clearInterval(this.state.intervalIsSet);
+      this.setState({ intervalIsSet: null });
+    }
+  }
+
+  // just a note, here, in the front end, we use the id key of our data object
+  // in order to identify which we want to Update or delete.
+  // for our back end, we use the object id assigned by MongoDB to modify
+  // data base entries
+
+  // our first get method that uses our backend api to
+  // fetch data from our data base
+  getDataFromDb = () => {
+    fetch('http://localhost:3001/api/getData')
+      .then((data) => data.json())
+      .then((res) => this.setState({ data: res.data }));
+  };
+
+  // our put method that uses our backend api
+  // to create new query into our data base
+  putDataToDB = (message) => {
+    let currentIds = this.state.data.map((data) => data.id);
+    let idToBeAdded = 0;
+    while (currentIds.includes(idToBeAdded)) {
+      ++idToBeAdded;
+    }
+
+    axios.post('http://localhost:3001/api/putData', {
+      id: idToBeAdded,
+      message: message,
+    });
+  };
+
+  // our delete method that uses our backend api
+  // to remove existing database information
+  deleteFromDB = (idTodelete) => {
+    parseInt(idTodelete);
+    let objIdToDelete = null;
+    this.state.data.forEach((dat) => {
+      if (dat.id == idTodelete) {
+        objIdToDelete = dat._id;
+      }
+    });
+
+    axios.delete('http://localhost:3001/api/deleteData', {
+      data: {
+        id: objIdToDelete,
+      },
+    });
+  };
+
+  // our update method that uses our backend api
+  // to overwrite existing data base information
+  updateDB = (idToUpdate, updateToApply) => {
+    let objIdToUpdate = null;
+    parseInt(idToUpdate);
+    this.state.data.forEach((dat) => {
+      if (dat.id == idToUpdate) {
+        objIdToUpdate = dat._id;
+      }
+    });
+
+    axios.post('http://localhost:3001/api/updateData', {
+      id: objIdToUpdate,
+      update: { message: updateToApply },
+    });
+  };
+
+  // here is our UI
+  // it is easy to understand their functions when you
+  // see them render into our screen
+  render() {
+    const { data } = this.state;
+    return (
+      <div>
+        <ul>
+          {data.length <= 0
+            ? 'NO DB ENTRIES YET'
+            : data.map((dat) => (
+                <li style={{ padding: '10px' }} key={data.message}>
+                  <span style={{ color: 'gray' }}> id: </span> {dat.id} <br />
+                  <span style={{ color: 'gray' }}> data: </span>
+                  {dat.message}
+                </li>
+              ))}
+        </ul>
+        <div style={{ padding: '10px' }}>
+          <input
+            type="text"
+            onChange={(e) => this.setState({ message: e.target.value })}
+            placeholder="add something in the database"
+            style={{ width: '200px' }}
+          />
+          <button onClick={() => this.putDataToDB(this.state.message)}>
+            ADD
+          </button>
+        </div>
+        <div style={{ padding: '10px' }}>
+          <input
+            type="text"
+            style={{ width: '200px' }}
+            onChange={(e) => this.setState({ idToDelete: e.target.value })}
+            placeholder="put id of item to delete here"
+          />
+          <button onClick={() => this.deleteFromDB(this.state.idToDelete)}>
+            DELETE
+          </button>
+        </div>
+        <div style={{ padding: '10px' }}>
+          <input
+            type="text"
+            style={{ width: '200px' }}
+            onChange={(e) => this.setState({ idToUpdate: e.target.value })}
+            placeholder="id of item to update here"
+          />
+          <input
+            type="text"
+            style={{ width: '200px' }}
+            onChange={(e) => this.setState({ updateToApply: e.target.value })}
+            placeholder="put new value of the item here"
+          />
+          <button
+            onClick={() =>
+              this.updateDB(this.state.idToUpdate, this.state.updateToApply)
+            }
+          >
+            UPDATE
+          </button>
         </div>
       </div>
     );
-
-    /*return (
-      <div className="App">
-        <header className="App-header">
-          <p>
-            Welcome to Software Development Methods
-          </p>
-          <p>
-            This is a sample MERN application.
-          </p>
-        </header>
-      </div>
-    );*/
   }
-}  
+}
 
-export default graphql(UpdateMutation,{name:"updateTodo"})(graphql(TodosQuery)(App));
-
-
-
-
-
-
-  
+export default App;
