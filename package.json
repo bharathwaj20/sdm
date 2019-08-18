@@ -16,7 +16,11 @@
     "url": "https://github.com/bharathwaj20/sdm/issues"
   },
   "homepage": "https://github.com/bharathwaj20/sdm#readme",
-  "dependencies": {
-    "mocha": "^6.2.0"
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "graphql": "^14.4.2",
+    "mocha": "^6.2.0",
+    "supertest": "^4.0.2"
   }
 }
