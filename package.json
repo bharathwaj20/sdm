@@ -1,0 +1,22 @@
+{
+  "name": "sdm",
+  "version": "1.0.0",
+  "description": "mern app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bharathwaj20/sdm.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bharathwaj20/sdm/issues"
+  },
+  "homepage": "https://github.com/bharathwaj20/sdm#readme",
+  "dependencies": {
+    "mocha": "^6.2.0"
+  }
+}
