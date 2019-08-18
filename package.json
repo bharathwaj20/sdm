@@ -2,7 +2,7 @@
   "name": "sdm",
   "version": "1.0.0",
   "description": "mern app",
-  "main": "index.js",
+  "main": "C:\Users\Bharathwaj\Documents\GitHub\sdm\server\index.js",
   "scripts": {
     "test": "mocha"
   },
